@@ -66,7 +66,8 @@ document.addEventListener("DOMContentLoaded", function(e) {
     var [currVert, currHoriz] = game.currentLocation;
     var locIndex = gameBoard[currVert][currHoriz];
     var currentSquare = squares[locIndex];
-    var trapTreasure = isTrapTreasure(locIndex);
+    var newLocIndex = gameBoard[newVert][newHoriz];
+    var trapTreasure = isTrapTreasure(newLocIndex);
     var chipCopy = currentSquare.innerHTML;
     currentSquare.innerHTML = "";
     if (trapTreasure === "trap") {
