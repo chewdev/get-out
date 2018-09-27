@@ -10,8 +10,7 @@ document.addEventListener("DOMContentLoaded", function(e) {
       "Roll Only 5's or 6's",
       "Move Up And Left"
     ];
-    this.usePowerups = [];
-    this.powerUpsListEl = document.querySelector(".power-ups-list");
+    this.powerupsToBeUsed = [];
     this.winningVert = 7;
     this.winningHoriz = 7;
     this.currentVert = 0;
@@ -27,13 +26,6 @@ document.addEventListener("DOMContentLoaded", function(e) {
       [48, 49, 50, 51, 52, 53, 54, 55],
       [56, 57, 58, 59, 60, 61, 62, 63]
     ];
-    this.chip = document.createElement("div");
-    this.chip.classList.add("chip");
-    this.squares = document.querySelectorAll(".board-square");
-    this.currentSquare = this.squares[0];
-    this.currentSquare.appendChild(this.chip);
-    this.diceEls = document.querySelectorAll(".dice");
-    this.rollCountEl = document.querySelector(".roll-count");
 
     this.isTrapTreasure = function(loc) {
       var type = this.trap.includes(loc)
@@ -43,68 +35,166 @@ document.addEventListener("DOMContentLoaded", function(e) {
           : null;
       return type;
     };
+
     this.findNewLoc = function(change, direction) {
       var current = direction === "vert" ? this.currentVert : this.currentHoriz;
       var newLoc = current + change;
       if (newLoc > 7) {
         return newLoc - 8;
       }
+      if (newLoc < 0) {
+        return newLoc + 8;
+      }
       return newLoc;
     };
+
     this.incRollCount = function() {
       this.rollCountEl.textContent = ++this.rollCount;
     };
+
+    this.rollUpdateDice = function() {
+      var vertChange = getDiceRoll();
+      var horizChange = getDiceRoll();
+      if (this.powerupsToBeUsed.length > 0) {
+        this.powerupsToBeUsed.forEach(function(powerup) {
+          switch (powerup) {
+            case "No Vertical Movement":
+              vertChange = 0;
+              break;
+            case "No Horizontal Movement":
+              horizChange = 0;
+              break;
+            case "Roll Only 1's or 2's":
+              vertChange = vertChange === 0 ? 0 : vertChange % 2 === 0 ? 1 : 2;
+              horizChange =
+                horizChange === 0 ? 0 : horizChange % 2 === 0 ? 1 : 2;
+              break;
+            case "Roll Only 5's or 6's":
+              vertChange = vertChange === 0 ? 0 : vertChange % 2 === 0 ? 5 : 6;
+              horizChange =
+                horizChange === 0 ? 0 : horizChange % 2 === 0 ? 5 : 6;
+              break;
+            case "Move Up And Left":
+              vertChange = -vertChange;
+              horizChange = -horizChange;
+              break;
+            default:
+              break;
+          }
+        });
+        this.powerupsToBeUsed = [];
+        this.updatePowerups();
+      }
+      this.diceEls[0].textContent = vertChange;
+      this.diceEls[1].textContent = horizChange;
+      this.currentVert = this.findNewLoc(vertChange, "vert");
+      this.currentHoriz = this.findNewLoc(horizChange);
+      return this.gameBoard[this.currentVert][this.currentHoriz];
+    };
+
+    this.clearChip = function() {
+      this.chip = this.currentSquare.innerHTML;
+      this.currentSquare.innerHTML = "";
+    };
+
+    this.gotTrapped = function() {
+      this.clearChip();
+      this.currentSquare = this.squares[0];
+      this.currentSquare.innerHTML = this.chip;
+      this.currentVert = 0;
+      this.currentHoriz = 0;
+    };
+
+    this.usePowerup = function(ind) {
+      var removedPowerup = this.attainedPowerups.splice(ind, 1);
+      this.powerupsToBeUsed.push(removedPowerup[0]);
+      console.log(this.attainedPowerups);
+      console.log(this.powerupsToBeUsed);
+      this.updatePowerups();
+    };
+
+    this.removePowerup = function(ind) {
+      var powerupToRemove = this.powerupsToBeUsed.splice(ind, 1);
+      this.attainedPowerups.push(powerupToRemove[0]);
+      console.log(this.powerupsToBeUsed);
+      this.updatePowerups();
+    };
+
+    this.updatePowerups = function() {
+      var thisObj = this;
+      var powerUpsListEl = this.powerUpsListEl;
+      var powerUpsUsing = this.powerUpsUsing;
+      powerUpsListEl.innerHTML = "";
+      powerUpsUsing.innerHTML = "";
+      if (this.powerupsToBeUsed.length > 0) {
+        this.powerupsToBeUsed.forEach(function(powerup, ind) {
+          var newLi = document.createElement("li");
+          newLi.textContent = powerup;
+          var removePowerup = function() {
+            this.removePowerup(ind);
+          };
+          newLi.onclick = removePowerup.bind(thisObj);
+          powerUpsUsing.appendChild(newLi);
+        });
+      }
+
+      this.attainedPowerups.forEach(function(powerup, ind) {
+        var newLi = document.createElement("li");
+        newLi.textContent = powerup;
+        var usePowerup = function() {
+          this.usePowerup(ind);
+        };
+        newLi.onclick = usePowerup.bind(thisObj);
+        powerUpsListEl.appendChild(newLi);
+      });
+    };
+
+    this.gotTreasure = function() {
+      this.attainedPowerups.push(
+        this.possiblePowerups[
+          Math.floor(Math.random() * this.possiblePowerups.length)
+        ]
+      );
+      this.powerUpsListEl.innerHTML = "";
+      var powerUpsListEl = this.powerUpsListEl;
+      var thisObj = this;
+      this.attainedPowerups.forEach(function(powerup, ind) {
+        var newLi = document.createElement("li");
+        newLi.textContent = powerup;
+        var usePowerup = function() {
+          this.usePowerup(ind);
+        };
+        newLi.onclick = usePowerup.bind(thisObj);
+        powerUpsListEl.appendChild(newLi);
+      });
+    };
+
     this.rollDice = function() {
       this.incRollCount();
-      var [vertChange, horizChange] = getBothDiceRolls();
-      this.diceEls[0].innerHTML = vertChange;
-      this.diceEls[1].innerHTML = horizChange;
-      var newVert = this.findNewLoc(vertChange, "vert");
-      var newHoriz = this.findNewLoc(horizChange);
-      if (newVert === this.winningVert && newHoriz === this.winningHoriz) {
+      var newLocEl = this.rollUpdateDice();
+      if (
+        this.currentVert === this.winningVert &&
+        this.currentHoriz === this.winningHoriz
+      ) {
         console.log("win");
         this.currentSquare.innerHTML = "";
         startNewGame();
         return;
       }
-      var newLocEl = this.gameBoard[newVert][newHoriz];
-      var chipCopy = this.currentSquare.innerHTML;
-      this.currentSquare.innerHTML = "";
+
       var trapTreasure = this.isTrapTreasure(newLocEl);
-      this.powerUpsListEl.innerHTML = "";
-      var powerUpsListEl = this.powerUpsListEl;
 
       if (trapTreasure === "trap") {
-        this.currentSquare = this.squares[0];
-        this.currentSquare.innerHTML = chipCopy;
-        this.currentVert = 0;
-        this.currentHoriz = 0;
-
-        this.attainedPowerups.forEach(function(powerup) {
-          var newLi = document.createElement("li");
-          newLi.textContent = powerup;
-          powerUpsListEl.appendChild(newLi);
-        });
+        this.gotTrapped();
         return;
       }
       if (trapTreasure === "treasure") {
-        this.attainedPowerups.push(
-          this.possiblePowerups[
-            Math.floor(Math.random() * this.possiblePowerups.length)
-          ]
-        );
-        console.log(this.attainedPowerups);
+        this.gotTreasure();
       }
-      var newBoardLoc = this.squares[this.gameBoard[newVert][newHoriz]];
+      var newBoardLoc = this.squares[newLocEl];
+      this.clearChip();
       this.currentSquare = newBoardLoc;
-      this.currentSquare.innerHTML = chipCopy;
-      this.currentVert = newVert;
-      this.currentHoriz = newHoriz;
-      this.attainedPowerups.forEach(function(powerup) {
-        var newLi = document.createElement("li");
-        newLi.textContent = powerup;
-        powerUpsListEl.appendChild(newLi);
-      });
+      this.currentSquare.innerHTML = this.chip;
     };
   }
 
@@ -119,8 +209,20 @@ document.addEventListener("DOMContentLoaded", function(e) {
     var diceArr = [getDiceRoll(), getDiceRoll()];
     return diceArr;
   }
+
   function startNewGame() {
     game = new Game();
+    game.powerUpsListEl = document.querySelector(".power-ups-list");
+    game.powerUpsListEl.innerHTML = "";
+    game.powerUpsUsing = document.querySelector(".power-ups-using");
+    game.powerUpsUsing.innerHTML = "";
+    game.chip = document.createElement("div");
+    game.chip.classList.add("chip");
+    game.squares = document.querySelectorAll(".board-square");
+    game.currentSquare = game.squares[0];
+    game.currentSquare.appendChild(game.chip);
+    game.diceEls = document.querySelectorAll(".dice");
+    game.rollCountEl = document.querySelector(".roll-count");
     diceBtn.onclick = game.rollDice.bind(game);
   }
 });
