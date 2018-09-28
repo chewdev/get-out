@@ -1,7 +1,30 @@
 document.addEventListener("DOMContentLoaded", function(e) {
   function Game() {
-    this.trap = [23, 39, 57];
-    this.treasure = [7, 13, 28, 58];
+    this.trap = [23, 39, 57, 60];
+    this.treasure = [
+      5,
+      7,
+      11,
+      13,
+      18,
+      22,
+      25,
+      28,
+      30,
+      33,
+      34,
+      35,
+      36,
+      40,
+      42,
+      45,
+      49,
+      51,
+      54,
+      58,
+      61,
+      62
+    ];
     this.attainedPowerups = [];
     this.possiblePowerups = [
       "No Vertical Movement",
@@ -65,14 +88,36 @@ document.addEventListener("DOMContentLoaded", function(e) {
               horizChange = 0;
               break;
             case "Roll Only 1's or 2's":
-              vertChange = vertChange === 0 ? 0 : vertChange % 2 === 0 ? 1 : 2;
+              var vertSign = Math.sign(vertChange);
+              var horizSign = Math.sign(horizChange);
+              vertChange =
+                vertChange === 0
+                  ? 0
+                  : vertChange % 2 === 0
+                    ? 1 * vertSign
+                    : 2 * vertSign;
               horizChange =
-                horizChange === 0 ? 0 : horizChange % 2 === 0 ? 1 : 2;
+                horizChange === 0
+                  ? 0
+                  : horizChange % 2 === 0
+                    ? 1 * horizSign
+                    : 2 * horizSign;
               break;
             case "Roll Only 5's or 6's":
-              vertChange = vertChange === 0 ? 0 : vertChange % 2 === 0 ? 5 : 6;
+              var vertSign = Math.sign(vertChange);
+              var horizSign = Math.sign(horizChange);
+              vertChange =
+                vertChange === 0
+                  ? 0
+                  : vertChange % 2 === 0
+                    ? 5 * vertSign
+                    : 6 * vertSign;
               horizChange =
-                horizChange === 0 ? 0 : horizChange % 2 === 0 ? 5 : 6;
+                horizChange === 0
+                  ? 0
+                  : horizChange % 2 === 0
+                    ? 5 * horizSign
+                    : 6 * horizSign;
               break;
             case "Move Up And Left":
               vertChange = -vertChange;
@@ -106,6 +151,22 @@ document.addEventListener("DOMContentLoaded", function(e) {
     };
 
     this.usePowerup = function(ind) {
+      if (this.powerupsToBeUsed.length > 0) {
+        var powerUpToRemove = this.attainedPowerups.slice(ind, ind + 1)[0];
+        if (
+          this.powerupsToBeUsed.includes(powerUpToRemove) ||
+          (this.powerupsToBeUsed.includes("Roll Only 1's or 2's") &&
+            powerUpToRemove === "Roll Only 5's or 6's") ||
+          (this.powerupsToBeUsed.includes("Roll Only 5's or 6's") &&
+            powerUpToRemove === "Roll Only 1's or 2's") ||
+          (this.powerupsToBeUsed.includes("No Vertical Movement") &&
+            powerUpToRemove === "No Horizontal Movement") ||
+          (this.powerupsToBeUsed.includes("No Horizontal Movement") &&
+            powerUpToRemove === "No Vertical Movement")
+        ) {
+          return;
+        }
+      }
       var removedPowerup = this.attainedPowerups.splice(ind, 1);
       this.powerupsToBeUsed.push(removedPowerup[0]);
       console.log(this.attainedPowerups);
