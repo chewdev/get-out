@@ -1,5 +1,8 @@
 document.addEventListener("DOMContentLoaded", function(e) {
-  function Game() {
+  function Player() {
+    this.bestScore = null;
+  }
+  function Game(player) {
     this.trap = [23, 39, 57, 60];
     this.treasure = [
       5,
@@ -39,6 +42,7 @@ document.addEventListener("DOMContentLoaded", function(e) {
     this.currentVert = 0;
     this.currentHoriz = 0;
     this.rollCount = 0;
+    this.player = player;
     this.gameBoard = [
       [0, 1, 2, 3, 4, 5, 6, 7],
       [8, 9, 10, 11, 12, 13, 14, 15],
@@ -230,6 +234,11 @@ document.addEventListener("DOMContentLoaded", function(e) {
       });
     };
 
+    this.updateScore = function() {
+      this.scoreEl.innerHTML = this.player.bestScore;
+      this.rollCountEl.innerHTML = 0;
+    };
+
     this.rollDice = function() {
       this.incRollCount();
       var newLocEl = this.rollUpdateDice();
@@ -239,6 +248,12 @@ document.addEventListener("DOMContentLoaded", function(e) {
       ) {
         console.log("win");
         this.currentSquare.innerHTML = "";
+        if (!this.player.bestScore) {
+          this.player.bestScore = this.rollCount;
+        } else if (this.player.bestScore > this.rollCount) {
+          this.player.bestScore = this.rollCount;
+        }
+        this.updateScore();
         startNewGame();
         return;
       }
@@ -261,6 +276,7 @@ document.addEventListener("DOMContentLoaded", function(e) {
 
   var diceBtn = document.querySelector(".roll-dice");
   var game;
+  var player = new Player();
   startNewGame();
 
   function getDiceRoll() {
@@ -272,7 +288,7 @@ document.addEventListener("DOMContentLoaded", function(e) {
   }
 
   function startNewGame() {
-    game = new Game();
+    game = new Game(player);
     game.powerUpsListEl = document.querySelector(".power-ups-list");
     game.powerUpsListEl.innerHTML = "";
     game.powerUpsUsing = document.querySelector(".power-ups-using");
@@ -284,6 +300,7 @@ document.addEventListener("DOMContentLoaded", function(e) {
     game.currentSquare.appendChild(game.chip);
     game.diceEls = document.querySelectorAll(".dice");
     game.rollCountEl = document.querySelector(".roll-count");
+    game.scoreEl = document.querySelector(".best-score");
     diceBtn.onclick = game.rollDice.bind(game);
   }
 });

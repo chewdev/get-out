@@ -21,25 +21,37 @@
     <![endif]-->
   <div class="page-cont">
     <div class="game-header">
-      <div class="dice">
-        3
-      </div>
-      <div class="dice">
-        5
-      </div>
-      <button class="roll-dice">
-        Roll The Dice!
-      </button>
-      <p>Roll Count: <span class="roll-count">0</span></p>
-      <h3>Power-ups:</h3>
-      <ul class="power-ups-list">
+      <div class="dice-container">
+        <div>
+          Vertical Roll: <span class="dice"></span>
+        </div>
+        <div>
+          Horizontal Roll: <span class="dice"></span>
+        </div>
 
-      </ul>
-      <h3>Using:</h3>
-      <ul class="power-ups-using">
+        <p>Roll Count: <span class="roll-count">0</span></p>
+        <p>Best Score: <span class="best-score"></span></p>
+      </div>
 
-      </ul>
+
+      <div class="power-ups-container">
+        <h3 class="power-ups-header">Power-ups:</h3>
+        <ul class="power-ups-list">
+        </ul>
+      </div>
+
+
+      <div class="power-ups-container">
+        <h3 class="power-ups-header">Using:</h3>
+        <ul class="power-ups-list power-ups-using">
+
+        </ul>
+      </div>
+
     </div>
+    <button class="roll-dice">
+      Roll The Dice!
+    </button>
     <div class="game-board">
       <div class="board-row">
         <div class="board-square"></div>
