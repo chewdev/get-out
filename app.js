@@ -148,6 +148,8 @@ document.addEventListener("DOMContentLoaded", function(e) {
 
     this.gotTrapped = function() {
       this.clearChip();
+      this.notificationEl.innerHTML =
+        "You got trapped! Back to the beginning with you!";
       this.currentSquare = this.squares[0];
       this.currentSquare.innerHTML = this.chip;
       this.currentVert = 0;
@@ -215,11 +217,12 @@ document.addEventListener("DOMContentLoaded", function(e) {
     };
 
     this.gotTreasure = function() {
-      this.attainedPowerups.push(
-        this.possiblePowerups[
-          Math.floor(Math.random() * this.possiblePowerups.length)
-        ]
-      );
+      var newPowerup = this.possiblePowerups[
+        Math.floor(Math.random() * this.possiblePowerups.length)
+      ];
+      this.attainedPowerups.push(newPowerup);
+      this.notificationEl.innerHTML =
+        "You receieved a new power-up: " + newPowerup;
       this.powerUpsListEl.innerHTML = "";
       var powerUpsListEl = this.powerUpsListEl;
       var thisObj = this;
@@ -240,13 +243,15 @@ document.addEventListener("DOMContentLoaded", function(e) {
     };
 
     this.rollDice = function() {
+      this.notificationEl.innerHTML = "";
       this.incRollCount();
       var newLocEl = this.rollUpdateDice();
       if (
         this.currentVert === this.winningVert &&
         this.currentHoriz === this.winningHoriz
       ) {
-        console.log("win");
+        this.notificationEl.innerHTML =
+          "You reached the finish! It took " + this.rollCount + " rolls.";
         this.currentSquare.innerHTML = "";
         if (!this.player.bestScore) {
           this.player.bestScore = this.rollCount;
@@ -275,6 +280,8 @@ document.addEventListener("DOMContentLoaded", function(e) {
   }
 
   var diceBtn = document.querySelector(".roll-dice");
+  var newGameBtn = document.querySelector(".start-new");
+  newGameBtn.onclick = startNewGame;
   var game;
   var player = new Player();
   startNewGame();
@@ -296,11 +303,16 @@ document.addEventListener("DOMContentLoaded", function(e) {
     game.chip = document.createElement("div");
     game.chip.classList.add("chip");
     game.squares = document.querySelectorAll(".board-square");
+    game.squares.forEach(function(square) {
+      square.innerHTML = "";
+    });
     game.currentSquare = game.squares[0];
     game.currentSquare.appendChild(game.chip);
     game.diceEls = document.querySelectorAll(".dice");
     game.rollCountEl = document.querySelector(".roll-count");
     game.scoreEl = document.querySelector(".best-score");
+    game.notificationEl = document.querySelector(".game-notification");
     diceBtn.onclick = game.rollDice.bind(game);
+    game.updateScore();
   }
 });
